@@ -98,7 +98,12 @@ const productosBase: Producto[] = [
 const PedidoTable: React.FC = () => {
   // 3️⃣ Usamos estado para almacenar la lista de productos
   const [productos, setProductos] = useState<Producto[]>(productosBase);
+  const [width, setWidth] = useState(window.innerWidth);
+  const breakpoint = 740;
 
+  window.addEventListener("resize", () => setWidth(window.innerWidth));
+
+  
 
   // 🛠 Función para manejar cambios en los inputs
   const handleChange = (index: number, field: keyof Producto, value: number) => {
@@ -183,11 +188,109 @@ const PedidoTable: React.FC = () => {
   const productosCol1 = productos.slice(0, mitad);
   const productosCol2 = productos.slice(mitad);
 
+  if (width < breakpoint) {
+    return (
+    <div className="p-4 w-full mx-auto">
+        <div className="flex-col w-full mx-auto mb-4">
+          <header className="w-full flex justify-around p-1 mb-2">
+            <h2 className="">Pedido 1</h2>
+            <label htmlFor="date" >Fecha:
+              <input type="date" id="date" className="ml-2" />
+            </label>
+          </header>
+          <nav className="w-full flex flex-col gap-2">
+            <label htmlFor="name" className="p-1 flex gap-2">Nombre:
+              <input type="text" id="name" className="ml-2 w-md border-1"/>
+            </label>
+            <label htmlFor="adress" className="p-1 flex">Dirección:
+              <input type="text" id="adress" className="ml-2 w-md border-1"/>
+            </label>
+          </nav>
+        </div>
+        <div>
+        <table className="border-collapse border w-full">
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id} className="border p-1 text-sm">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {productos.map((producto, index) => (
+              <tr key={index}>
+                <td className="border p-1 text-xs">{producto.nombre}</td>
+                <td className="border p-1 text-xs">
+                  <input
+                    type="number"
+                    value={producto.cantidad || ""}
+                    onChange={(e) => handleChange(index, "cantidad", Number(e.target.value))}
+                  />
+                </td>
+                <td className="border p-1 text-xs">
+                  <input
+                    type="number"
+                    value={producto.precioUnitario || ""}
+                    onChange={(e) => handleChange(index, "precioUnitario", Number(e.target.value))}
+                  />
+                </td>
+                <td className="border p-1 text-xs">{producto.importe.toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* 8️⃣ Mostramos el total general de la venta */}
+      <div className="mt-4 text-right font-bold text-lg">
+        Total S/: {productos.reduce((sum, p) => sum + p.importe, 0).toFixed(2)}
+      </div>
+
+      {/* Tabla Resumen de Productos Vendidos */}
+      <h2>Resumen de Productos Vendidos</h2>
+      <table className="border w-full">
+        <thead>
+          { getResumenProductos(productos).length > 0 && (
+            <tr>
+              <th className="border p-2">Producto</th>
+              <th className="border p-2">Total Cantidad</th>
+            </tr>
+            )}
+        </thead>
+        <tbody>
+          { getResumenProductos(productos).map((resumen) => (
+            <tr key={resumen.nombre}>
+              <td className="border p-2">{resumen.nombre}</td>
+              <td className="border p-2 text-center">{resumen.totalCantidad}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>)
+  }
+  
   return (
-    <div className="p-4">
+    <div className="p-4 w-full mx-auto">
+      <div className="flex-col">
+          <header>
+            <h2>Pedido 1</h2>
+            <label htmlFor="date">Fecha</label>
+              <input type="date" id="date" />
+          </header>
+          <nav>
+            <label htmlFor="name">Nombre</label>
+            <input type="text" id="name" />
+
+            <label htmlFor="adress">Dirección</label>
+            <input type="text" id="adress" />
+          </nav>
+      </div>
       <div className="p-4 grid grid-cols-2 gap-4">
+      <h2 className="text-lg font-bold mb-2 col-span-full">Productos</h2>
       <div>
-        <h2 className="text-lg font-bold mb-2">Columna 1</h2>
         <table className="border-collapse border w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -203,21 +306,21 @@ const PedidoTable: React.FC = () => {
           <tbody>
             {productosCol1.map((producto, index) => (
               <tr key={index}>
-                <td className="border p-2">{producto.nombre}</td>
+                <td className="border p-2 text-sm">{producto.nombre}</td>
                 <td className="border p-2">
                   <input
                     type="number"
                     value={producto.cantidad || ""}
                     onChange={(e) => handleChange(index, "cantidad", Number(e.target.value))}
-                    className="border p-1 w-full"
+                    className=" p-1 w-full"
                   />
                 </td>
-                <td className="border p-2">
+                <td className="border p-1">
                   <input
                     type="number"
                     value={producto.precioUnitario || ""}
                     onChange={(e) => handleChange(index, "precioUnitario", Number(e.target.value))}
-                    className="border p-1 w-full"
+                    className=" p-1 w-full"
                   />
                 </td>
                 <td className="border p-2">{producto.importe.toFixed(2)}</td>
@@ -227,7 +330,6 @@ const PedidoTable: React.FC = () => {
         </table>
       </div>
       <div>
-        <h2 className="text-lg font-bold mb-2">Columna 2</h2>
         <table className="border-collapse border w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -243,13 +345,13 @@ const PedidoTable: React.FC = () => {
           <tbody>
             {productosCol2.map((producto, index) => (
               <tr key={index + mitad}>
-                <td className="border p-2">{producto.nombre}</td>
+                <td className="border p-2 text-sm">{producto.nombre}</td>
                 <td className="border p-2">
                   <input
                     type="number"
                     value={producto.cantidad || ""}
                     onChange={(e) => handleChange(index + mitad, "cantidad", Number(e.target.value))}
-                    className="border p-1 w-full"
+                    className="p-1 w-full"
                   />
                 </td>
                 <td className="border p-2">
@@ -257,7 +359,7 @@ const PedidoTable: React.FC = () => {
                     type="number"
                     value={producto.precioUnitario || ""}
                     onChange={(e) => handleChange(index + mitad, "precioUnitario", Number(e.target.value))}
-                    className="border p-1 w-full"
+                    className="p-1 w-full"
                   />
                 </td>
                 <td className="border p-2">{producto.importe.toFixed(2)}</td>
