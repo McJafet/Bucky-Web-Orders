@@ -12,6 +12,9 @@ type Producto = {
 
 type Pedido = {
   id: number;
+  cliente: string;
+  direccion: string;
+  fecha: string;
   productos: Producto[];
   total: number;
 };
@@ -106,11 +109,17 @@ const PedidoTable: React.FC = () => {
   const [productos, setProductos] = useState<Producto[]>(productosBase);
   const [width, setWidth] = useState(window.innerWidth);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [total, setTotal] = useState<number>(0);
+  // const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
+  const [cliente, setCliente] = useState<string>("");
+  const [direccion, setDireccion] = useState<string>("");
+  const [fecha, setFecha] = useState<string>("");
   const [resumen, setResumen] = useState<{ [key: string]: {
     cantidad: number;
     importe: number;
   }}>({});
-  const [total, setTotal] = useState<number>(0);
+
+
   const breakpoint = 740;
 
   window.addEventListener("resize", () => setWidth(window.innerWidth));
@@ -138,9 +147,16 @@ const PedidoTable: React.FC = () => {
   };
 
   const handleAddPedido = () => {
+    if (!cliente || !direccion || !fecha) {
+      alert("Por favor, complete los datos del cliente.");
+      return;
+    }
     const totalPedido = productos.reduce((acc, producto) => acc + producto.importe, 0);
     const nuevoPedido: Pedido = {
       id: pedidos.length + 1,
+      cliente,
+      direccion,
+      fecha,
       productos: [...productos],
       total: totalPedido,
     };
@@ -160,6 +176,9 @@ const PedidoTable: React.FC = () => {
     setResumen(nuevoResumen);
     setTotal((prev) => prev + nuevoTotal);
     setProductos(productosBase.map((p) => ({ ...p })));
+    setCliente("");
+    setDireccion("");
+    setFecha("");
   };
 
 
@@ -231,17 +250,12 @@ const PedidoTable: React.FC = () => {
         <div className="flex-col w-full mx-auto mb-4">
           <header className="w-full flex justify-around p-1 mb-2">
             <h2 className="">Pedido 1</h2>
-            <label htmlFor="date" >Fecha:
-              <input type="date" id="date" className="ml-2" />
-            </label>
+            <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className="border p-2" />
           </header>
           <nav className="w-full flex flex-col gap-2">
-            <label htmlFor="name" className="p-1 flex gap-2">Nombre:
-              <input type="text" id="name" className="ml-2 w-md border-1"/>
-            </label>
-            <label htmlFor="adress" className="p-1 flex">Dirección:
-              <input type="text" id="adress" className="ml-2 w-md border-1"/>
-            </label>
+            <input type="text" placeholder="Nombre del Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} className="border p-2 mr-2" />
+            <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="border p-2 mr-2" />
+        
           </nav>
         </div>
         <div>
@@ -315,13 +329,19 @@ const PedidoTable: React.FC = () => {
         <thead>
           <tr>
             <th className="border p-2">Pedido</th>
+            <th className="border p-2">Cliente</th>
+            <th className="border p-2">Dirección</th>
+            <th className="border p-2">Fecha</th>
             <th className="border p-2">Total</th>
           </tr>
         </thead>
         <tbody>
           {pedidos.map((pedido) => (
             <tr key={pedido.id}>
-              <td className="border p-2">Pedido #{pedido.id}</td>
+              <td className="border p-2">#{pedido.id}</td>
+              <td className="border p-2">{pedido.cliente}</td>
+              <td className="border p-2">{pedido.direccion}</td>
+              <td className="border p-2">{pedido.fecha}</td>
               <td className="border p-2">S/. {pedido.total.toFixed(2)}</td>
             </tr>
           ))}
@@ -332,20 +352,22 @@ const PedidoTable: React.FC = () => {
   
   return (
     <div className="p-4 w-full mx-auto">
-      <div className="flex-col">
-          <header>
-            <h2>Pedido 1</h2>
-            <label htmlFor="date">Fecha</label>
-              <input type="date" id="date" />
+      <div className="flex-col w-full mx-auto mb-4">
+          <header className="w-full flex justify-around p-1 mb-2">
+            <h2 className="">Pedido 1</h2>
+            <label htmlFor="date" >Fecha:
+              <input type="date" id="date" className="ml-2" />
+            </label>
           </header>
-          <nav>
-            <label htmlFor="name">Nombre</label>
-            <input type="text" id="name" />
-
-            <label htmlFor="adress">Dirección</label>
-            <input type="text" id="adress" />
+          <nav className="w-full flex flex-col gap-2">
+            <label htmlFor="name" className="p-1 flex gap-2">Nombre:
+              <input type="text" id="name" className="ml-2 w-md border-1"/>
+            </label>
+            <label htmlFor="adress" className="p-1 flex">Dirección:
+              <input type="text" id="adress" className="ml-2 w-md border-1"/>
+            </label>
           </nav>
-      </div>
+        </div>
       <div className="p-4 grid grid-cols-2 gap-4">
       <h2 className="text-lg font-bold mb-2 col-span-full">Productos</h2>
       <div>
@@ -427,32 +449,52 @@ const PedidoTable: React.FC = () => {
         </table>
       </div>
     </div>
+    <button onClick={handleAddPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4">Guardar Pedido</button>
 
-      {/* 8️⃣ Mostramos el total general de la venta */}
-      <div className="mt-4 text-right font-bold text-lg">
-        Total S/: {productos.reduce((sum, p) => sum + p.importe, 0).toFixed(2)}
-      </div>
+{/* 8️⃣ Mostramos el total general de la venta */}
+<div className="mt-4 text-right font-bold text-lg">
+  Total S/: {productos.reduce((sum, p) => sum + p.importe, 0).toFixed(2)}
+</div>
 
-      {/* Tabla Resumen de Productos Vendidos */}
-      <h2>Resumen de Productos Vendidos</h2>
-      <table className="border w-full">
-        <thead>
-          { getResumenProductos(productos).length > 0 && (
-            <tr>
-              <th className="border p-2">Producto</th>
-              <th className="border p-2">Total Cantidad</th>
-            </tr>
-            )}
-        </thead>
-        <tbody>
-          { getResumenProductos(productos).map((resumen) => (
-            <tr key={resumen.nombre}>
-              <td className="border p-2">{resumen.nombre}</td>
-              <td className="border p-2 text-center">{resumen.totalCantidad}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+{/* Tabla Resumen de Productos Vendidos */}
+<h2>Resumen de Productos Vendidos</h2>
+<table className="border w-full">
+  <thead>
+    { getResumenProductos(productos).length > 0 && (
+      <tr>
+        <th className="border p-2">Producto</th>
+        <th className="border p-2">Total Cantidad</th>
+      </tr>
+      )}
+  </thead>
+  <tbody>
+    { Object.entries(resumen).map(([producto, cantidad]) => (
+      <tr key={producto}>
+        <td className="border p-2">{producto}</td>
+        <td className="border p-2 text-center">{cantidad.cantidad}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+<h3 className="text-md font-bold mt-4">Monto total del Día: S/. {total.toFixed(2)}</h3>
+
+<h2 className="text-lg font-bold mb-2">Lista de Pedidos Guardados</h2>
+<table className="border-collapse border w-full mb-4">
+  <thead>
+    <tr>
+      <th className="border p-2">Pedido</th>
+      <th className="border p-2">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {pedidos.map((pedido) => (
+      <tr key={pedido.id}>
+        <td className="border p-2">Pedido #{pedido.id}</td>
+        <td className="border p-2">S/. {pedido.total.toFixed(2)}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
     </div>
   );
 };
