@@ -10,6 +10,12 @@ type Producto = {
   ventaPorDocena: boolean;
 };
 
+type Pedido = {
+  id: number;
+  productos: Producto[];
+  total: number;
+};
+
 // 2️⃣ Creamos una lista base de productos
 const productosBase: Producto[] = [
   { nombre: "PAPAS LAYS Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
@@ -99,6 +105,12 @@ const PedidoTable: React.FC = () => {
   // 3️⃣ Usamos estado para almacenar la lista de productos
   const [productos, setProductos] = useState<Producto[]>(productosBase);
   const [width, setWidth] = useState(window.innerWidth);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [resumen, setResumen] = useState<{ [key: string]: {
+    cantidad: number;
+    importe: number;
+  }}>({});
+  const [total, setTotal] = useState<number>(0);
   const breakpoint = 740;
 
   window.addEventListener("resize", () => setWidth(window.innerWidth));
@@ -123,6 +135,31 @@ const PedidoTable: React.FC = () => {
 
       return newProductos; // 🔄 Actualizamos el estado con la nueva lista de productos
     });
+  };
+
+  const handleAddPedido = () => {
+    const totalPedido = productos.reduce((acc, producto) => acc + producto.importe, 0);
+    const nuevoPedido: Pedido = {
+      id: pedidos.length + 1,
+      productos: [...productos],
+      total: totalPedido,
+    };
+    setPedidos((prev) => [...prev, nuevoPedido]);
+
+    const nuevoResumen = { ...resumen };
+    let nuevoTotal = 0;
+    productos.forEach((p) => {
+      if (p.cantidad > 0) {
+        nuevoResumen[p.nombre] = {
+          cantidad: (nuevoResumen[p.nombre]?.cantidad || 0) + p.cantidad,
+          importe: (nuevoResumen[p.nombre]?.importe || 0) + p.importe,
+        };
+        nuevoTotal += p.importe;
+      }
+    });
+    setResumen(nuevoResumen);
+    setTotal((prev) => prev + nuevoTotal);
+    setProductos(productosBase.map((p) => ({ ...p })));
   };
 
 
@@ -244,6 +281,8 @@ const PedidoTable: React.FC = () => {
           </tbody>
         </table>
       </div>
+      <button onClick={handleAddPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4">Guardar Pedido</button>
+
       {/* 8️⃣ Mostramos el total general de la venta */}
       <div className="mt-4 text-right font-bold text-lg">
         Total S/: {productos.reduce((sum, p) => sum + p.importe, 0).toFixed(2)}
@@ -261,10 +300,29 @@ const PedidoTable: React.FC = () => {
             )}
         </thead>
         <tbody>
-          { getResumenProductos(productos).map((resumen) => (
-            <tr key={resumen.nombre}>
-              <td className="border p-2">{resumen.nombre}</td>
-              <td className="border p-2 text-center">{resumen.totalCantidad}</td>
+          { Object.entries(resumen).map(([producto, cantidad]) => (
+            <tr key={producto}>
+              <td className="border p-2">{producto}</td>
+              <td className="border p-2 text-center">{cantidad.cantidad}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h3 className="text-md font-bold mt-4">Monto total del Día: S/. {total.toFixed(2)}</h3>
+
+      <h2 className="text-lg font-bold mb-2">Lista de Pedidos Guardados</h2>
+      <table className="border-collapse border w-full mb-4">
+        <thead>
+          <tr>
+            <th className="border p-2">Pedido</th>
+            <th className="border p-2">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {pedidos.map((pedido) => (
+            <tr key={pedido.id}>
+              <td className="border p-2">Pedido #{pedido.id}</td>
+              <td className="border p-2">S/. {pedido.total.toFixed(2)}</td>
             </tr>
           ))}
         </tbody>
