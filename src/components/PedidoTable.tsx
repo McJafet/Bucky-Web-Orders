@@ -1,109 +1,9 @@
 import React, { useState } from "react";
 import { ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
+import { Pedido } from "../data/Pedidos";
+import productosBase, { Producto } from "../data/Productos";
 
-// 1️⃣ Definimos el tipo de dato para cada producto
-type Producto = {
-  nombre: string;
-  cantidad: number;
-  precioUnitario: number;
-  importe: number;
-  ventaPorDocena: boolean;
-};
-
-type Pedido = {
-  id: number;
-  cliente: string;
-  direccion: string;
-  fecha: string;
-  productos: Producto[];
-  total: number;
-};
-
-// 2️⃣ Creamos una lista base de productos
-const productosBase: Producto[] = [
-  { nombre: "PAPAS LAYS Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "PIQUEOS SNAX Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "DORITOS Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "CHIZITOS Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "CHEETOS Fiesta", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "PAPAS LAYS HILO", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "PIQUEOS SNAX", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "TOR TEES NATURAL", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "TOR TEES PICANTE", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "PAPAS LAYS", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "PAPA ONDA PIC.", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "DORITOS Q. ATREVIDO", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "DORITOS FUEGO", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "CHEETOS NATURAL", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "CHEETOS PICANTE", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: "CHEESE TRIS", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: false},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPAS LAYS HILO", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "PIQUOS SNAX", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "DORITOS Q. ATREVIDO",cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "DORITOS PICANTE", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "DORITOS FLAMING", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "DINAMITA", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "CARIBAS CAMOTE", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "TOR TEES PICANTE", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "TOR TEES NATURAL", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "CHICHARRONES", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPAS LAYS", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPAS LAYS ONDA PIC.", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "LAYS POLLO A LA BRASA", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPAS ONDA ANTURAL", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPAS LAYS HOT", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE TRIS", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEETOS PICANTE", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEETOS MEGA QUESO", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "CHIZITO", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEETOS FLAMING", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEETOS BOLIQUESO", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-
-  { nombre: "CUATES PICANTE", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CUATES NATURAL", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CUATES TWIST", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CUATES RANCHERITOS", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHIFLE KARINTO", cantidad: 0, precioUnitario: 18, importe: 0, ventaPorDocena: true},
-  { nombre: "MANI TUBULAR SALADO", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "MANI TUBULAR CLASICO", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "MANI TUBULAR PICANTE", cantidad: 0, precioUnitario: 15, importe: 0, ventaPorDocena: true},
-  { nombre: "HABAS TUBULAR", cantidad: 0, precioUnitario: 20, importe: 0, ventaPorDocena: true},
-  { nombre: "PAPA BUCKY", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "TORTILLA PICANTE", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "TORTILLA NATURAL", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "NACHO QUESO", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "NACHO PICANTE", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "SPECIAL CHIP", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "BUCKY PAPA PICANTE", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "BUCKY PAPA MAYONESA", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHICHARRON", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHIFLE SALADO", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHA BUCKY", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHA DULCE BUCKY", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE BUCKY", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE PIC BUCKY", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHA SALADA", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHA DULCE", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE TRICKS", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE PIC. TRICKS",  cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: " ", cantidad: 0, precioUnitario: 0, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHITA SALADA", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "CANCHITA DULCE", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "CHEESE PIC", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "STICKS", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "STICKS PICANTE", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "BOLI TRICKS", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "BOLI TRICKS PIC", cantidad: 0, precioUnitario: 5, importe: 0, ventaPorDocena: true},
-  { nombre: "RICKY TOY NAT", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true},
-  { nombre: "RICKY TOY PIC", cantidad: 0, precioUnitario: 10, importe: 0, ventaPorDocena: true}
-];
-
+// 1️⃣ Definimos la tabla de pedidos
 const PedidoTable: React.FC = () => {
   // 3️⃣ Usamos estado para almacenar la lista de productos
   const [productos, setProductos] = useState<Producto[]>(productosBase);
@@ -137,9 +37,9 @@ const PedidoTable: React.FC = () => {
       };
 
       // 5️⃣ Recalculamos el importe (cantidad * precio unitario)
-      newProductos[index].importe = newProductos[index].cantidad * newProductos[index].precioUnitario;
+      newProductos[index].importe = newProductos[index].cantidad * newProductos[index].precio;
       if (newProductos[index].ventaPorDocena) {
-        newProductos[index].importe = (newProductos[index].cantidad / 12) * newProductos[index].precioUnitario;
+        newProductos[index].importe = (newProductos[index].cantidad / 12) * newProductos[index].precio;
       }
 
       return newProductos; // 🔄 Actualizamos el estado con la nueva lista de productos
@@ -147,10 +47,10 @@ const PedidoTable: React.FC = () => {
   };
 
   const handleAddPedido = () => {
-    if (!cliente || !direccion || !fecha) {
-      alert("Por favor, complete los datos del cliente.");
-      return;
-    }
+    // if (!cliente || !direccion || !fecha) {
+    //   alert("Por favor, complete los datos del cliente.");
+    //   return;
+    // }
     const totalPedido = productos.reduce((acc, producto) => acc + producto.importe, 0);
     const nuevoPedido: Pedido = {
       id: pedidos.length + 1,
@@ -203,8 +103,8 @@ const PedidoTable: React.FC = () => {
       cell: ({ row }) => (
         <input
           type="number"
-          value={row.original.precioUnitario || ""}
-          onChange={(e) => handleChange(row.index, "precioUnitario", Number(e.target.value))}
+          value={row.original.precio || ""}
+          onChange={(e) => handleChange(row.index, "precio", Number(e.target.value))}
           className="border p-1 w-full"
         />
       ),
@@ -285,8 +185,8 @@ const PedidoTable: React.FC = () => {
                 <td className="border p-1 text-xs">
                   <input
                     type="number"
-                    value={producto.precioUnitario || ""}
-                    onChange={(e) => handleChange(index, "precioUnitario", Number(e.target.value))}
+                    value={producto.precio || ""}
+                    onChange={(e) => handleChange(index, "precio", Number(e.target.value))}
                   />
                 </td>
                 <td className="border p-1 text-xs">{producto.importe.toFixed(2)}</td>
@@ -398,8 +298,8 @@ const PedidoTable: React.FC = () => {
                 <td className="border p-1">
                   <input
                     type="number"
-                    value={producto.precioUnitario || ""}
-                    onChange={(e) => handleChange(index, "precioUnitario", Number(e.target.value))}
+                    value={producto.precio || ""}
+                    onChange={(e) => handleChange(index, "precio", Number(e.target.value))}
                     className=" p-1 w-full"
                   />
                 </td>
@@ -437,8 +337,8 @@ const PedidoTable: React.FC = () => {
                 <td className="border p-2">
                   <input
                     type="number"
-                    value={producto.precioUnitario || ""}
-                    onChange={(e) => handleChange(index + mitad, "precioUnitario", Number(e.target.value))}
+                    value={producto.precio || ""}
+                    onChange={(e) => handleChange(index + mitad, "precio", Number(e.target.value))}
                     className="p-1 w-full"
                   />
                 </td>
