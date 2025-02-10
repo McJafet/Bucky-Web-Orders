@@ -188,23 +188,31 @@ const PedidoTable: React.FC = () => {
           </thead>
           <tbody>
             {productos.map((producto, index) => (
-              <tr key={index}>
-                <td className="border p-1 text-xs">{producto.nombre}</td>
-                <td className="border p-1 text-xs">
+              <tr key={index} className="text-xs">
+                <td className="border p-1 ">{producto.nombre}</td>
+                <td className="border p-1 ">
                   <input
                     type="number"
                     value={producto.cantidad || ""}
                     onChange={(e) => handleChange(index, "cantidad", Number(e.target.value))}
                   />
                 </td>
-                <td className="border p-1 text-xs">
+                <td className="border p-1">
+                  <input
+                    type="number"
+                    value={producto.cambio || ""}
+                    onChange={(e) => handleChange(index, "cambio", Number(e.target.value))}
+                    className=" p-1 w-full"
+                  />
+                </td>
+                <td className="border p-1 ">
                   <input
                     type="number"
                     value={producto.precio || ""}
                     onChange={(e) => handleChange(index, "precio", Number(e.target.value))}
                   />
                 </td>
-                <td className="border p-1 text-xs">{producto.importe.toFixed(2)}</td>
+                <td className="border p-1 ">{producto.importe.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -355,6 +363,14 @@ const PedidoTable: React.FC = () => {
                     value={producto.cantidad || ""}
                     onChange={(e) => handleChange(index + mitad, "cantidad", Number(e.target.value))}
                     className="p-1 w-full"
+                  />
+                </td>
+                <td className="border p-1">
+                  <input
+                    type="number"
+                    value={producto.cambio || ""}
+                    onChange={(e) => handleChange(index, "cambio", Number(e.target.value))}
+                    className=" p-1 w-full"
                   />
                 </td>
                 <td className="border p-1">
