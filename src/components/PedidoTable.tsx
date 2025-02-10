@@ -1,10 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import { Pedido } from "../data/Pedidos";
 import productosBase, { Producto } from "../data/Productos";
+import { useReactToPrint } from "react-to-print";
 
 // 1️⃣ Definimos la tabla de pedidos
 const PedidoTable: React.FC = () => {
+  let day = new Date().getDate();
+  let month = new Date().getMonth() + 1;
+  const year = new Date().getFullYear();
+
+  if (day < 10) {
+    day = `0${day}` as unknown as number;
+  }
+  if (month < 10) {
+    month = `0${month}` as unknown as number;
+  }
   // 3️⃣ Usamos estado para almacenar la lista de productos
   const [productos, setProductos] = useState<Producto[]>(productosBase);
   const [width, setWidth] = useState(window.innerWidth);
@@ -13,15 +24,15 @@ const PedidoTable: React.FC = () => {
   // const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
   const [cliente, setCliente] = useState<string>("");
   const [direccion, setDireccion] = useState<string>("");
-  const [fecha, setFecha] = useState<string>("");
+  const [fecha, setFecha] = useState<string>(`${day}/${month}/${year}`);
   const [resumen, setResumen] = useState<{ [key: string]: {
     cantidad: number;
     importe: number;
   }}>({});
 
+  
 
   const breakpoint = 740;
-
   window.addEventListener("resize", () => setWidth(window.innerWidth));
 
   
@@ -65,9 +76,10 @@ const PedidoTable: React.FC = () => {
     const nuevoResumen = { ...resumen };
     let nuevoTotal = 0;
     productos.forEach((p) => {
-      if (p.cantidad > 0) {
+      p.cambio = p.cambio || 0;
+      if (p.cantidad > 0 || p.cambio > 0) {
         nuevoResumen[p.nombre] = {
-          cantidad: (nuevoResumen[p.nombre]?.cantidad || 0) + p.cantidad,
+          cantidad: (nuevoResumen[p.nombre]?.cantidad || 0) + p.cantidad + p.cambio,
           importe: (nuevoResumen[p.nombre]?.importe || 0) + p.importe,
         };
         nuevoTotal += p.importe;
@@ -78,7 +90,7 @@ const PedidoTable: React.FC = () => {
     setProductos(productosBase.map((p) => ({ ...p })));
     setCliente("");
     setDireccion("");
-    setFecha("");
+    setFecha(`${day}/${month}/${year}`);
   };
 
 
@@ -125,29 +137,32 @@ const PedidoTable: React.FC = () => {
 
 
   // 🛠 Función para obtener el resumen de productos vendido
-  const getResumenProductos = (productos: Producto[]) => {
-    const resumen = productos
-      .filter((p) => p.cantidad > 0)
-      .reduce((acc, p) => {
-        const index = acc.findIndex((r) => r.nombre === p.nombre);
-        if (index === -1) {
-          acc.push({ nombre: p.nombre, totalCantidad: p.cantidad });
-        } else {
-          acc[index].totalCantidad += p.cantidad;
-        }
-        return acc;
-      }, [] as { nombre: string; totalCantidad: number }[]);
-    return resumen;
-  };
+  // const getResumenProductos = (productos: Producto[]) => {
+  //   const resumen = productos
+  //     .filter((p) => p.cantidad > 0 || (p.cambio ?? 0) > 0)
+  //     .reduce((acc, p) => {
+  //       const index = acc.findIndex((r) => r.nombre === p.nombre);
+  //       if (index === -1) {
+  //         acc.push({ nombre: p.nombre, totalCantidad: p.cantidad + (p.cambio ?? 0) });
+  //       } else {
+  //         acc[index].totalCantidad += p.cantidad + (p.cambio ?? 0);
+  //       }
+  //       return acc;
+  //     }, [] as { nombre: string; totalCantidad: number }[]);
+  //   return resumen;
+  // };
 
   const mitad = Math.ceil(productos.length / 2);
   const productosCol1 = productos.slice(0, mitad);
   const productosCol2 = productos.slice(mitad);
 
+  const contentRef = useRef<HTMLDivElement>(null);
+  const reactToPrint = useReactToPrint({ contentRef });
+
   if (width < breakpoint) {
     return (
     <div className="p-4 w-full mx-auto">
-        <div className="flex-col w-full mx-auto mb-4">
+        <div ref={contentRef} className="flex-col w-full mx-auto mb-4">
           <header className="w-full flex justify-around p-1 mb-2">
             <h2 className="">Pedido 1</h2>
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className="border p-2" />
@@ -196,6 +211,7 @@ const PedidoTable: React.FC = () => {
         </table>
       </div>
       <button onClick={handleAddPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4">Guardar Pedido</button>
+      <button onClick={() => reactToPrint()}>Print</button>
 
       {/* 8️⃣ Mostramos el total general de la venta */}
       <div className="mt-4 text-right font-bold text-lg">
@@ -206,7 +222,7 @@ const PedidoTable: React.FC = () => {
       <h2>Resumen de Productos Vendidos</h2>
       <table className="border w-full">
         <thead>
-          { getResumenProductos(productos).length > 0 && (
+          { Object.keys(resumen).length > 0 && (
             <tr>
               <th className="border p-2">Producto</th>
               <th className="border p-2">Total Cantidad</th>
@@ -252,12 +268,11 @@ const PedidoTable: React.FC = () => {
   
   return (
     <div className="p-4 w-full mx-auto">
+      <div ref={contentRef} className="flex-col w-full mx-auto mb-4">
       <div className="flex-col w-full mx-auto mb-4">
           <header className="w-full flex justify-around p-1 mb-2">
             <h2 className="">Pedido 1</h2>
-            <label htmlFor="date" >Fecha:
-              <input type="date" id="date" className="ml-2" />
-            </label>
+            <p>Fecha: {fecha}</p>
           </header>
           <nav className="w-full flex flex-col gap-2">
             <label htmlFor="name" className="p-1 flex gap-2">Nombre:
@@ -276,22 +291,30 @@ const PedidoTable: React.FC = () => {
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id} className="border p-2">
+                  <th key={header.id} className="border p-2 text-xs">
                     {flexRender(header.column.columnDef.header, header.getContext())}
                   </th>
                 ))}
               </tr>
             ))}
           </thead>
-          <tbody>
+          <tbody className="text-xs">
             {productosCol1.map((producto, index) => (
               <tr key={index}>
-                <td className="border p-2 text-sm">{producto.nombre}</td>
-                <td className="border p-2">
+                <td className="border p-1">{producto.nombre}</td>
+                <td className="border p-1">
                   <input
                     type="number"
                     value={producto.cantidad || ""}
                     onChange={(e) => handleChange(index, "cantidad", Number(e.target.value))}
+                    className=" p-1 w-full"
+                  />
+                </td>
+                <td className="border p-1">
+                  <input
+                    type="number"
+                    value={producto.cambio || ""}
+                    onChange={(e) => handleChange(index, "cambio", Number(e.target.value))}
                     className=" p-1 w-full"
                   />
                 </td>
@@ -303,7 +326,7 @@ const PedidoTable: React.FC = () => {
                     className=" p-1 w-full"
                   />
                 </td>
-                <td className="border p-2">{producto.importe.toFixed(2)}</td>
+                <td className="border p-1">{producto.importe.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
@@ -322,11 +345,11 @@ const PedidoTable: React.FC = () => {
               </tr>
             ))}
           </thead>
-          <tbody>
+          <tbody className="text-xs">
             {productosCol2.map((producto, index) => (
               <tr key={index + mitad}>
-                <td className="border p-2 text-sm">{producto.nombre}</td>
-                <td className="border p-2">
+                <td className="border p-1">{producto.nombre}</td>
+                <td className="border p-1">
                   <input
                     type="number"
                     value={producto.cantidad || ""}
@@ -334,7 +357,7 @@ const PedidoTable: React.FC = () => {
                     className="p-1 w-full"
                   />
                 </td>
-                <td className="border p-2">
+                <td className="border p-1">
                   <input
                     type="number"
                     value={producto.precio || ""}
@@ -342,14 +365,17 @@ const PedidoTable: React.FC = () => {
                     className="p-1 w-full"
                   />
                 </td>
-                <td className="border p-2">{producto.importe.toFixed(2)}</td>
+                <td className="border p-1">{producto.importe.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
     </div>
+    </div>
     <button onClick={handleAddPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4">Guardar Pedido</button>
+    <button onClick={() => reactToPrint()}>Print</button>
+
 
 {/* 8️⃣ Mostramos el total general de la venta */}
 <div className="mt-4 text-right font-bold text-lg">
@@ -360,7 +386,7 @@ const PedidoTable: React.FC = () => {
 <h2>Resumen de Productos Vendidos</h2>
 <table className="border w-full">
   <thead>
-    { getResumenProductos(productos).length > 0 && (
+    { Object.keys(resumen).length > 0 && (
       <tr>
         <th className="border p-2">Producto</th>
         <th className="border p-2">Total Cantidad</th>
