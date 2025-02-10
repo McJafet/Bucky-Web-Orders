@@ -110,6 +110,18 @@ const PedidoTable: React.FC = () => {
       ),
     },
     {
+      accessorKey: "cambio",
+      header: "Cambio",
+      cell: ({ row }) => (
+        <input
+          type="number"
+          value={row.original.cambio || ""}
+          onChange={(e) => handleChange(row.index, "cambio", Number(e.target.value))}
+          className="border p-1 w-full"
+        />
+      ),
+    },
+    {
       accessorKey: "precioUnitario",
       header: "P. Unit.",
       cell: ({ row }) => (
