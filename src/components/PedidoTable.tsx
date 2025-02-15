@@ -45,7 +45,6 @@ const PedidoTable: React.FC = () => {
     setProductos((prev) => {
       // 4️⃣ Creamos una copia del estado actual para modificar sin afectar el original
       const newProductos = [...prev];
-      if (!newProductos[index]) return prev;
       newProductos[index] = {
         ...newProductos[index],
         [field]: value, // 🔄 Actualizamos solo el campo que cambió
@@ -421,7 +420,7 @@ const PedidoTable: React.FC = () => {
                   <input
                     type="number"
                     value={producto.cambio || ""}
-                    onChange={(e) => handleChange(index, "cambio", Number(e.target.value))}
+                    onChange={(e) => handleChange(index + mitad, "cambio", Number(e.target.value))}
                     className=" p-1 w-full"
                   />
                 </td>
