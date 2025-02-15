@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ColumnDef, useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table";
 import { Pedido } from "../data/Pedidos";
 import productosBase, { Producto } from "../data/Productos";
@@ -6,34 +6,37 @@ import { useReactToPrint } from "react-to-print";
 
 // 1️⃣ Definimos la tabla de pedidos
 const PedidoTable: React.FC = () => {
-  let day = new Date().getDate();
-  let month = new Date().getMonth() + 1;
+  let day: string | number = new Date().getDate();
+  let month: string | number = new Date().getMonth() + 1;
   const year = new Date().getFullYear();
 
   if (day < 10) {
-    day = `0${day}` as unknown as number;
+    day = `0${day}`;
   }
   if (month < 10) {
-    month = `0${month}` as unknown as number;
+    month = `0${month}`;
   }
   // 3️⃣ Usamos estado para almacenar la lista de productos
-  const [productos, setProductos] = useState<Producto[]>(productosBase);
+  const [productos, setProductos] = useState<Producto[]>(productosBase.map(p => ({ ...p })));
   const [width, setWidth] = useState(window.innerWidth);
   const [pedidos, setPedidos] = useState<Pedido[]>([]);
   const [total, setTotal] = useState<number>(0);
-  // const [pedidoSeleccionado, setPedidoSeleccionado] = useState<Pedido | null>(null);
+  const [pedidoSeleccionado, setPedidoSeleccionado] = useState<number | null>(null);
   const [cliente, setCliente] = useState<string>("");
   const [direccion, setDireccion] = useState<string>("");
-  const [fecha, setFecha] = useState<string>(`${day}/${month}/${year}`);
+  const [fecha, setFecha] = useState<string>(`${year}-${month}-${day}`);
   const [resumen, setResumen] = useState<{ [key: string]: {
     cantidad: number;
     importe: number;
   }}>({});
 
-  
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const breakpoint = 740;
-  window.addEventListener("resize", () => setWidth(window.innerWidth));
 
   
 
@@ -42,6 +45,7 @@ const PedidoTable: React.FC = () => {
     setProductos((prev) => {
       // 4️⃣ Creamos una copia del estado actual para modificar sin afectar el original
       const newProductos = [...prev];
+      if (!newProductos[index]) return prev;
       newProductos[index] = {
         ...newProductos[index],
         [field]: value, // 🔄 Actualizamos solo el campo que cambió
@@ -62,19 +66,53 @@ const PedidoTable: React.FC = () => {
     //   alert("Por favor, complete los datos del cliente.");
     //   return;
     // }
-    const totalPedido = productos.reduce((acc, producto) => acc + producto.importe, 0);
-    const nuevoPedido: Pedido = {
-      id: pedidos.length + 1,
-      cliente,
-      direccion,
-      fecha,
-      productos: [...productos],
-      total: totalPedido,
-    };
-    setPedidos((prev) => [...prev, nuevoPedido]);
 
+    if (productos.reduce((acc, producto) => acc + producto.cantidad, 0) === 0) return;
+    const totalPedido = productos.reduce((acc, producto) => acc + producto.importe, 0);
+    let nuevoPedidos = [...pedidos];
+    let diferenciaTotal = 0
+    let pedidoAnterior: Pedido | undefined;
+
+    if (pedidoSeleccionado !== null) {
+
+      // Encontramos pedido existente
+      pedidoAnterior = pedidos.find(p => p.id === pedidoSeleccionado)
+      
+      if (pedidoAnterior) {
+        // Restar los productos anteriores del resumen
+        pedidoAnterior.productos.forEach((p) => {
+          p.cambio = p.cambio || 0;
+          if (p.cantidad > 0 || p.cambio > 0) {
+            resumen[p.nombre] = {
+              cantidad: (resumen[p.nombre]?.cantidad || 0) - p.cantidad - p.cambio,
+              importe: (resumen[p.nombre]?.importe || 0) - p.importe,
+            };
+          }
+        })
+
+        // Actualizar el pedido en la lista
+        nuevoPedidos = pedidos.map(p =>
+          p.id === pedidoSeleccionado ? { ...p, productos, total: totalPedido } : p
+        );
+
+        // Calcular la diferencia del total del pedido
+        diferenciaTotal = totalPedido - pedidoAnterior.total;
+      }
+    } else {
+      const nuevoPedido: Pedido = {
+        id: pedidos.length + 1,
+        cliente,
+        direccion,
+        fecha,
+        productos: [...productos],
+        total: totalPedido,
+      };
+      nuevoPedidos.push(nuevoPedido)
+      diferenciaTotal = totalPedido;
+    }
+    
+    // Actualizar el resumen con los nuevo valores
     const nuevoResumen = { ...resumen };
-    let nuevoTotal = 0;
     productos.forEach((p) => {
       p.cambio = p.cambio || 0;
       if (p.cantidad > 0 || p.cambio > 0) {
@@ -82,17 +120,39 @@ const PedidoTable: React.FC = () => {
           cantidad: (nuevoResumen[p.nombre]?.cantidad || 0) + p.cantidad + p.cambio,
           importe: (nuevoResumen[p.nombre]?.importe || 0) + p.importe,
         };
-        nuevoTotal += p.importe;
       }
     });
-    setResumen(nuevoResumen);
-    setTotal((prev) => prev + nuevoTotal);
+    const sortedResumen = Object.keys(nuevoResumen)
+      .sort((a, b) => {
+        const indexA = productosBase.findIndex((p) => p.nombre === a);
+        const indexB = productosBase.findIndex((p) => p.nombre === b);
+        return (indexA === -1 ? 999 : indexA) - (indexB === -1 ? 999 : indexB);
+      })
+      .reduce((acc, key) => {
+      acc[key] = nuevoResumen[key];
+      return acc;
+      }, {} as typeof nuevoResumen);
+
+    setPedidos(nuevoPedidos);
+    setResumen(sortedResumen);
+    setTotal(prev => prev + diferenciaTotal);
+    setPedidoSeleccionado(null);
     setProductos(productosBase.map((p) => ({ ...p })));
     setCliente("");
     setDireccion("");
-    setFecha(`${day}/${month}/${year}`);
+    setFecha(`${year}-${month}-${day}`);
   };
 
+  function handlePedido(pedidoId: number) {
+      const pedido = pedidos.find(p => p.id === pedidoId);
+      if (pedido) {
+        setPedidoSeleccionado(pedidoId)
+        setProductos(pedido.productos.map(p => ({ ...p })));
+        setFecha(pedido.fecha)
+        setCliente(pedido.cliente)
+        setDireccion(pedido.direccion)
+      }
+  }
 
   // 6️⃣ Definimos las columnas para la tabla
   const columns: ColumnDef<Producto>[] = [
@@ -147,29 +207,13 @@ const PedidoTable: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-
-  // 🛠 Función para obtener el resumen de productos vendido
-  // const getResumenProductos = (productos: Producto[]) => {
-  //   const resumen = productos
-  //     .filter((p) => p.cantidad > 0 || (p.cambio ?? 0) > 0)
-  //     .reduce((acc, p) => {
-  //       const index = acc.findIndex((r) => r.nombre === p.nombre);
-  //       if (index === -1) {
-  //         acc.push({ nombre: p.nombre, totalCantidad: p.cantidad + (p.cambio ?? 0) });
-  //       } else {
-  //         acc[index].totalCantidad += p.cantidad + (p.cambio ?? 0);
-  //       }
-  //       return acc;
-  //     }, [] as { nombre: string; totalCantidad: number }[]);
-  //   return resumen;
-  // };
-
   const mitad = Math.ceil(productos.length / 2);
   const productosCol1 = productos.slice(0, mitad);
   const productosCol2 = productos.slice(mitad);
 
   const contentRef = useRef<HTMLDivElement>(null);
   const reactToPrint = useReactToPrint({ contentRef });
+
 
   if (width < breakpoint) {
     return (
@@ -179,13 +223,13 @@ const PedidoTable: React.FC = () => {
             <h2 className="">Pedido 1</h2>
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className="border p-2" />
           </header>
-          <nav className="w-full flex flex-col gap-2">
+          <form className="w-full flex flex-col gap-2">
             <input type="text" placeholder="Nombre del Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} className="border p-2 mr-2" />
             <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="border p-2 mr-2" />
-        
-          </nav>
+          </form>
         </div>
         <div>
+        <button onClick={handleAddPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4 mb-4">Guardar Pedido</button>
         <table className="border-collapse border w-full">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -274,11 +318,11 @@ const PedidoTable: React.FC = () => {
         <tbody>
           {pedidos.map((pedido) => (
             <tr key={pedido.id}>
-              <td className="border p-2">#{pedido.id}</td>
               <td className="border p-2">{pedido.cliente}</td>
               <td className="border p-2">{pedido.direccion}</td>
               <td className="border p-2">{pedido.fecha}</td>
               <td className="border p-2">S/. {pedido.total.toFixed(2)}</td>
+              <td className="border flex justify-center"><button onClick={() => pedido.id !== undefined && handlePedido(pedido.id)}>Select</button></td>
             </tr>
           ))}
         </tbody>
@@ -290,18 +334,14 @@ const PedidoTable: React.FC = () => {
     <div className="p-4 w-full mx-auto">
       <div ref={contentRef} className="flex-col w-full mx-auto mb-4">
       <div className="flex-col w-full mx-auto mb-4">
-          <header className="w-full flex justify-around p-1 mb-2">
-            <h2 className="">Pedido 1</h2>
-            <p>Fecha: {fecha}</p>
-          </header>
-          <nav className="w-full flex flex-col gap-2">
-            <label htmlFor="name" className="p-1 flex gap-2">Nombre:
-              <input type="text" id="name" className="ml-2 w-md border-1"/>
-            </label>
-            <label htmlFor="adress" className="p-1 flex">Dirección:
-              <input type="text" id="adress" className="ml-2 w-md border-1"/>
-            </label>
-          </nav>
+      <header className="w-full flex justify-around p-1 mb-2">
+          <h2 className="">Pedido {pedidoSeleccionado !== null ? pedidoSeleccionado : pedidos.length + 1}</h2>
+          <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className="border p-2" />
+      </header>
+          <form className="w-full flex flex-col gap-2">
+            <input type="text" placeholder="Nombre del Cliente" value={cliente} onChange={(e) => setCliente(e.target.value)} className="border p-2 mr-2" />
+            <input type="text" placeholder="Dirección" value={direccion} onChange={(e) => setDireccion(e.target.value)} className="border p-2 mr-2" />
+          </form>
         </div>
       <div className="p-4 grid grid-cols-2 gap-4">
       <h2 className="text-lg font-bold mb-2 col-span-full">Productos</h2>
@@ -437,14 +477,21 @@ const PedidoTable: React.FC = () => {
   <thead>
     <tr>
       <th className="border p-2">Pedido</th>
+      <th className="border p-2">Cliente</th>
+      <th className="border p-2">Dirección</th>
+      <th className="border p-2">Fecha</th>
       <th className="border p-2">Total</th>
     </tr>
   </thead>
   <tbody>
     {pedidos.map((pedido) => (
       <tr key={pedido.id}>
-        <td className="border p-2">Pedido #{pedido.id}</td>
+        <td className="border p-2">{pedido.id}</td>
+        <td className="border p-2">{pedido.cliente}</td>
+        <td className="border p-2">{pedido.direccion}</td>
+        <td className="border p-2">{pedido.fecha}</td>
         <td className="border p-2">S/. {pedido.total.toFixed(2)}</td>
+        <td className="border flex justify-center"><button onClick={() => pedido.id !== undefined && handlePedido(pedido.id)}>Select</button></td>
       </tr>
     ))}
   </tbody>
