@@ -101,7 +101,8 @@ const PedidoTable: React.FC = () => {
 
   if (useResize({ breakpoint: 740 })) {
     return (
-    <div className="p-4 w-full mx-auto">
+      <>
+    <div className="p-4 w-full mx-auto" id="no-print">
         <div className="flex-col w-full mx-auto mb-4">
           <header className="w-full flex justify-around p-1 mb-2">
             <h2 className="">Pedido 1</h2>
@@ -164,19 +165,6 @@ const PedidoTable: React.FC = () => {
       </div>
       <button onClick={addPedido} className="col-span-2 bg-blue-500 text-white p-2 mt-4">Guardar Pedido</button>
       <button onClick={() => setShowPrintView(true)}  >Print</button>
-      <div id="#print-section">
-      {/* Mostrar el componente de impresión solo si hay productos seleccionados */}
-      {showPrintView && (
-        <PrintView 
-          productos={productosSeleccionados} 
-          pedidoNumero={pedidoSeleccionado !== null ? pedidoSeleccionado : pedidos.length + 1}
-          fecha={fecha} 
-          cliente={cliente} 
-          direccion={direccion} 
-          onClose={() => setShowPrintView(false)} 
-        />
-      )}
-    </div>
       <h2 className="text-lg font-bold mb-2">Lista de Pedidos Guardados</h2>
       <table className="border-collapse border w-full mb-4">
         <thead>
@@ -224,8 +212,21 @@ const PedidoTable: React.FC = () => {
         </tbody>
       </table>
       <h3 className="text-md font-bold mt-4">Monto total del Día: S/. {total.toFixed(2)}</h3>
-
-    </div>)
+    </div>
+    <div id="#print-section">
+      {/* Mostrar el componente de impresión solo si hay productos seleccionados */}
+      {showPrintView && (
+        <PrintView 
+          productos={productosSeleccionados} 
+          pedidoNumero={pedidoSeleccionado !== null ? pedidoSeleccionado : pedidos.length + 1}
+          fecha={fecha} 
+          cliente={cliente} 
+          direccion={direccion} 
+          onClose={() => setShowPrintView(false)} 
+        />
+      )}
+    </div>
+    </>)
   }
 
   console.log("se ejecuta")

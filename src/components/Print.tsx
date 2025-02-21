@@ -48,9 +48,8 @@ const PrintView: React.FC<PrintViewProps> = ({
 
         {/* Tabla de productos */}
         <h2 className="text-lg font-bold text-center mb-2">Productos</h2>
-        <div className={`grid ${`grid-cols-${productColumns.length}`
-        } ${productColumns.length === 3 ? "grid-flow-col" : ""
-        } gap-4`}>
+        <div className={`grid grid-cols-1 sm:${`grid-cols-${productColumns.length}`
+        } gap-4 print:grid-cols-${productColumns.length}`}>
           {productColumns.map((column, index) => (
             <table key={index} className="w-full border-collapse border border-gray-300 text-sm">
               <thead>
