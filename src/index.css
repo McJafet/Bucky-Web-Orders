@@ -1,7 +1,8 @@
 @import "tailwindcss";
 @media print {
-  body {
-    visibility: hidden;
+  html, body {
+    visibility: visible;
+    height: auto;
   }
   #no-print {
     display: none;
@@ -15,7 +16,12 @@
     position: absolute;
     left: 0;
     top: 0;
+    page-break-inside: avoid;
   }
+}
+@page {
+  size: A4;
+  margin: 0;
 }
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
