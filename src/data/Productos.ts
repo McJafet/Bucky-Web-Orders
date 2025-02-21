@@ -15,7 +15,7 @@ const productosBase: Producto[] = [
     { nombre: "CHIZITOS FIESTA", cantidad: 0, cambio: 0, precio: 4.5, importe: 0, ventaPorDocena: false},
     { nombre: "CHEETOS FIESTA", cantidad: 0, cambio: 0, precio: 5, importe: 0, ventaPorDocena: false},
     { nombre: " ", cantidad: 0, cambio: 0, precio: 0, importe: 0, ventaPorDocena: false},
-    { nombre: "PAPAS LAYS HILO BOLSAZA", cantidad: 0, cambio: 0, precio: 0, importe: 0, ventaPorDocena: false},
+    { nombre: "PAPAS LAYS HILO BOLSAZA", cantidad: 0, cambio: 0, precio: 2.5, importe: 0, ventaPorDocena: false},
     { nombre: "PIQUEOS SNAX BOLSAZA", cantidad: 0, cambio: 0, precio: 3, importe: 0, ventaPorDocena: false},
     { nombre: "TOR TEES NATURAL BOLSAZA", cantidad: 0, cambio: 0, precio: 3, importe: 0, ventaPorDocena: false},
     { nombre: "TOR TEES PICANTE BOLSAZA", cantidad: 0, cambio: 0, precio: 3, importe: 0, ventaPorDocena: false},
