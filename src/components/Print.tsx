@@ -32,7 +32,7 @@ const PrintView: React.FC<PrintViewProps> = ({
   const productColumns = splitProducts(productos, 20);
   
   return (
-    <div className="fixed top-0 left-0 w-full h-screen  bg-gray-800 p-8">
+    <div className="fixed top-0 left-0 w-full h-screen bg-gray-600 p-8">
       {/* Cabecera del Pedido */}
       <div className="w-full">
         <div className="flex flex-col w-full mx-auto mb-2">
@@ -50,21 +50,21 @@ const PrintView: React.FC<PrintViewProps> = ({
         <h2 className="text-lg font-bold text-center mb-2">Productos</h2>
         <div className={`grid grid-cols-1 gap-4 grid-cols-${productColumns.length}`}>
           {productColumns.map((column, index) => (
-            <table key={index} className="w-full border-collapseborder border-gray-300 text-sm">
+            <table key={index} className="w-full border-collapseborder text-sm">
               <thead>
                 <tr className="bg-gray-500">
-                  <th className="border border-gray-300 p-1">Producto</th>
-                  <th className="border border-gray-300 p-1">Cantidad</th>
-                  <th className="border border-gray-300 p-1">Subtotal</th>
+                  <th className="border p-1">Producto</th>
+                  <th className="border p-1">Cantidad</th>
+                  <th className="border p-1">Subtotal</th>
                 </tr>
               </thead>
               <tbody>
                 {column.map((producto, idx) => (
                   producto.cantidad > 0 && (
-                    <tr key={idx} className="border border-gray-300">
-                      <td className="border border-gray-300 p-1">{producto.nombre}</td>
-                      <td className="border border-gray-300 p-1 text-center">{producto.cantidad}</td>
-                      <td className="border border-gray-300 p-1 text-center">
+                    <tr key={idx} className="border bg-gray-400">
+                      <td className="border p-1">{producto.nombre}</td>
+                      <td className="border p-1 text-center">{producto.cantidad}</td>
+                      <td className="border p-1 text-center">
                         S/. {producto.cantidad > 0 ? producto.importe : 0}
                       </td>
                     </tr>
@@ -116,6 +116,5 @@ const PrintView: React.FC<PrintViewProps> = ({
     
   );
 };
-console.log("se ejecuta")
 
 export default PrintView;

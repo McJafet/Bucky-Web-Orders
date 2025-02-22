@@ -24,15 +24,15 @@ export function useProducts() {
 
     const updateProduct = ({ index, field, value }: { index: number; field: keyof Producto; value: string | number }) => {
         setProductos((prev) => {
-            // 4️⃣ Creamos una copia del estado actual para modificar sin afectar el original
-            // const newProductos = [...prev];
-            // newProductos[index] = {
-            //     ...newProductos[index],
-            //     [field]: value, // 🔄 Actualizamos solo el campo que cambió
-            // };
-            const newProductos = prev.map((p, i) =>
-                i === index ? { ...p, [field]: value } : p
-            );
+            //4️⃣ Creamos una copia del estado actual para modificar sin afectar el original
+            const newProductos = [...prev];
+            newProductos[index] = {
+                ...newProductos[index],
+                [field]: value, // 🔄 Actualizamos solo el campo que cambió
+            };
+            // const newProductos = prev.map((p, i) =>
+            //     i === index ? { ...p, [field]: value } : p
+            // );
             // 5️⃣ Recalculamos el importe (cantidad * precio unitario)
             newProductos[index].importe = newProductos[index].cantidad * newProductos[index].precio;
             if (newProductos[index].ventaPorDocena) {

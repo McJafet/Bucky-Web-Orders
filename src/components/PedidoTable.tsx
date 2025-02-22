@@ -30,7 +30,7 @@ const PedidoTable: React.FC = () => {
   const [showPrintView, setShowPrintView] = useState(false);
   const productosSeleccionados = productos.filter((p) => p.cantidad > 0 || (p.cambio ?? 0 > 0));
   // 🛠 Función para manejar cambios en los inputs
-  const handleChange = (index: number, field: keyof Producto, value: number) => {
+  const handleChange = (index: number, field: keyof Producto, value: string | number) => {
     updateProduct({ index, field, value });
 
   };
@@ -41,7 +41,17 @@ const PedidoTable: React.FC = () => {
 
   // 6️⃣ Definimos las columnas para la tabla
   const columns: ColumnDef<Producto>[] = [
-    { accessorKey: "nombre", header: "Producto" },
+    { accessorKey: "nombre",
+      header: "Producto",
+      cell: ({ row }) => (
+        <input
+          type="text"
+          value={row.original.nombre || ""}
+          onChange={(e) => handleChange(row.index, "nombre", e.target.value as string)}
+          className="border p-1 w-full"
+        />
+      ),
+    },
     {
       accessorKey: "cantidad",
       header: "Cantidad",
@@ -130,7 +140,13 @@ const PedidoTable: React.FC = () => {
             <tbody>
               {productos.map((producto, index) => (
                 <tr key={index} className="text-xs">
-                  <td className="border p-1 ">{producto.nombre}</td>
+                  <td className="border p-1 ">
+                    <input
+                        type="text"
+                        value={producto.nombre || ""}
+                        onChange={(e) => handleChange(index, "nombre", e.target.value as string)}
+                    />
+                  </td>
                   <td className="border p-1 ">
                     <input
                       type="number"
@@ -263,7 +279,13 @@ const PedidoTable: React.FC = () => {
                 <tbody className="text-xs">
                   {productosCol1.map((producto, index) => (
                     <tr key={index}>
-                      <td className="border p-1">{producto.nombre}</td>
+                      <td className="border p-1 ">
+                        <input
+                            type="text"
+                            value={producto.nombre || ""}
+                            onChange={(e) => handleChange(index, "nombre", e.target.value as string)}
+                        />
+                      </td>
                       <td className="border p-1">
                         <input
                           type="number"
@@ -310,7 +332,13 @@ const PedidoTable: React.FC = () => {
             <tbody className="text-xs">
               {productosCol2.map((producto, index) => (
                 <tr key={index + mitad}>
-                  <td className="border p-1">{producto.nombre}</td>
+                  <td className="border p-1 ">
+                    <input
+                        type="text"
+                        value={producto.nombre || ""}
+                        onChange={(e) => handleChange(index, "nombre", e.target.value as string)}
+                    />
+                  </td>
                   <td className="border p-1">
                     <input
                       type="number"
