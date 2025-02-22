@@ -32,7 +32,7 @@ const PrintView: React.FC<PrintViewProps> = ({
   const productColumns = splitProducts(productos, 20);
   
   return (
-    <div className="fixed top-0 left-0 w-full h-screen  bg-white p-8">
+    <div className="fixed top-0 left-0 w-full h-screen  bg-gray-800 p-8">
       {/* Cabecera del Pedido */}
       <div className="w-full">
         <div className="flex flex-col w-full mx-auto mb-2">
@@ -52,7 +52,7 @@ const PrintView: React.FC<PrintViewProps> = ({
           {productColumns.map((column, index) => (
             <table key={index} className="w-full border-collapseborder border-gray-300 text-sm">
               <thead>
-                <tr className="bg-gray-300">
+                <tr className="bg-gray-500">
                   <th className="border border-gray-300 p-1">Producto</th>
                   <th className="border border-gray-300 p-1">Cantidad</th>
                   <th className="border border-gray-300 p-1">Subtotal</th>
